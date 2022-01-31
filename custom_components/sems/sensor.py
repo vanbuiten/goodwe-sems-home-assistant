@@ -123,6 +123,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         for idx, ent in enumerate(coordinator.data)
     )
     async_add_entities(
+        SemsStatisticEDaySensor(coordinator, ent)
+        for idx, ent in enumerate(coordinator.data)
+    )
+    async_add_entities(
         SemsPowerflowSensor(coordinator, ent)
         for idx, ent in enumerate(coordinator.data) if ent == "homeKit"
     )
