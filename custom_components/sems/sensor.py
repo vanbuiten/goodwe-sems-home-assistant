@@ -340,11 +340,11 @@ class SemsStatisticEDaySensor(CoordinatorEntity, SensorEntity):
     @property
     def name(self) -> str:
         """Return the name of the sensor."""
-        return f"Inverter {self.coordinator.data[self.sn]['name']} Energy"
+        return f"Inverter {self.coordinator.data[self.sn]['name']} Energy production today"
 
     @property
     def unique_id(self) -> str:
-        return f"{self.coordinator.data[self.sn]['sn']}-energy-eday"
+        return f"{self.coordinator.data[self.sn]['sn']}-eday"
 
     @property
     def state(self):
