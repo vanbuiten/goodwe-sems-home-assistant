@@ -315,6 +315,83 @@ class SemsStatisticsSensor(CoordinatorEntity, SensorEntity):
         """
         await self.coordinator.async_request_refresh()
 
+class SemsStatisticEDaySensor(CoordinatorEntity, SensorEntity):
+    """Sensor in kWh to enable HA statistics, in the end usable in the power component."""
+
+    def __init__(self, coordinator, sn):
+        """Pass coordinator to CoordinatorEntity."""
+        super().__init__(coordinator)
+        self.coordinator = coordinator
+        self.sn = sn
+        _LOGGER.debug("Creating SemsStatisticsSensor with id %s", self.sn)
+
+    @property
+    def device_class(self):
+        return DEVICE_CLASS_ENERGY
+
+    @property
+    def unit_of_measurement(self):
+        return ENERGY_KILO_WATT_HOUR
+
+    @property
+    def name(self) -> str:
+        """Return the name of the sensor."""
+        return f"Inverter {self.coordinator.data[self.sn]['name']} Energy"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self.coordinator.data[self.sn]['sn']}-energy-eday"
+
+    @property
+    def state(self):
+        """Return the state of the device."""
+        # _LOGGER.debug("state, coordinator data: %s", self.coordinator.data)
+        # _LOGGER.debug("self.sn: %s", self.sn)
+        # _LOGGER.debug(
+        #     "state, self data: %s", self.coordinator.data[self.sn]
+        # )
+        data = self.coordinator.data[self.sn]
+        return data["eday"]
+
+    @property
+    def should_poll(self) -> bool:
+        """No need to poll. Coordinator notifies entity of updates."""
+        return False
+
+    @property
+    def device_info(self):
+        # _LOGGER.debug("self.device_state_attributes: %s", self.device_state_attributes)
+        data = self.coordinator.data[self.sn]
+        return {
+            "identifiers": {
+                # Serial numbers are unique identifiers within a specific domain
+                (DOMAIN, self.sn)
+            },
+            # "name": self.name,
+            "manufacturer": "GoodWe",
+            "model": data.get("model_type", "unknown"),
+            "sw_version": data.get("firmwareversion", "unknown"),
+            # "via_device": (DOMAIN, self.api.bridgeid),
+        }
+
+    @property
+    def state_class(self):
+        """used by Metered entities / Long Term Statistics"""
+        return STATE_CLASS_TOTAL_INCREASING
+
+    async def async_added_to_hass(self):
+        """When entity is added to hass."""
+        self.async_on_remove(
+            self.coordinator.async_add_listener(self.async_write_ha_state)
+        )
+
+    async def async_update(self):
+        """Update the entity.
+
+        Only used by the generic entity update service.
+        """
+        await self.coordinator.async_request_refresh()
+
 class SemsTotalImportSensor(CoordinatorEntity, SensorEntity):
     """Sensor in kWh to enable HA statistics, in the end usable in the power component."""
 
